@@ -160,6 +160,17 @@
 	}
 	let quizStatus = $state(new QuizStatus());
 
+	function removeItem<T>(arr: Array<T>, value: T): Array<T> {
+		const index = arr.indexOf(value);
+		if (index > -1) {
+			arr.splice(index, 1);
+		}
+		return arr;
+	}
+	function removeDoneQuestion(i: number, j: number) {
+		quizStatus.donequestions = removeItem(quizStatus.donequestions, `${i},${j}`);
+	}
+
 	function changepoint(team: number, points: number) {
 		teams[team].points += points;
 	}
@@ -168,8 +179,8 @@
 <h1>Welcome to SvelteKit</h1>
 <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
 {#if quizStatus.currentStatus !== status.score}
-<span>Boy: <input bind:value={teams[0].points} /></span>
-<span>Girl: <input bind:value={teams[1].points} /></span>
+	<span>Boy: <input bind:value={teams[0].points} /></span>
+	<span>Girl: <input bind:value={teams[1].points} /></span>
 {/if}
 <div id={status[quizStatus.currentStatus]}>
 	{#if quizStatus.currentStatus === status.choosequestion}
@@ -179,15 +190,20 @@
 		{#each quiz as category, i}
 			{#each category.questions as question, j}
 				<button
-					disabled={quizStatus.donequestions.includes(`${i},${j}`)}
 					onclick={() => {
+          if (!quizStatus.donequestions.includes(`${i},${j}`)) {
 						quizStatus.currentQuestion = [i, j];
 						quizStatus.currentStatus = status.question;
 						console.log(quizStatus);
+          }
+          else {
+            removeDoneQuestion(i, j)
+
+          }
 					}}
 				>
-					{question.points}
-				</button>
+					{question.points} {quizStatus.donequestions.includes(`${i},${j}`) ? "(remove done)" : null}
+        </button>
 			{/each}
 		{/each}
 	{:else if quizStatus.currentStatus === status.question}
@@ -256,7 +272,7 @@
 		border: none;
 		background-color: #f0f0f0;
 		cursor: pointer;
-    height: 70px;
+		height: 70px;
 	}
 
 	#choosequestion button:disabled {
